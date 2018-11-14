@@ -15,6 +15,9 @@ class ProductsModel(BaseModel):
         self.objects[obj.id] = obj
         return obj
 
+    def register_actions(self):
+        self._register_action("changeSlug", self.action_change_slug)
+
     def convert_product_draft(self, obj: types.ProductDraft):
         product = types.Product(
             id=str(uuid.uuid4()),
@@ -43,6 +46,17 @@ class ProductsModel(BaseModel):
             )
 
         return product
+
+    def action_change_slug(self, obj, slug, staged=True):
+        staged = staged is not False
+        data = obj.master_data.staged if staged else obj.master_data.current
+        if data is None:
+            data = types.ProductCatalogData()
+            if staged:
+                obj.master_data.staged = data
+            else:
+                obj.master_data.current = data
+        data.slug = slug
 
 
 class ProductsBackend(ServiceBackend):
@@ -101,7 +115,8 @@ class ProductsBackend(ServiceBackend):
     def update_by_id(self, request, id):
         obj = self.model.get_by_id(id)
         if obj:
-            schemas.ProductUpdateSchema().loads(request.body)
+            update = schemas.ProductUpdateSchema().loads(request.body)
+            self.model.execute_actions(obj, update.actions)
             content = schemas.ProductSchema().dumps(obj)
             return create_response(request, text=content)
         return create_response(request, status_code=404)

@@ -7,6 +7,8 @@ import requests_mock
 class BaseModel:
     def __init__(self):
         self.objects: typing.Dict = {}
+        self.actions: types.Dict = {}
+        self.register_actions()
 
     def add(self, id, obj):
         self.objects[id] = obj
@@ -18,6 +20,19 @@ class BaseModel:
         for obj in self.objects.values():
             if obj.key == key:
                 return obj
+
+    def register_actions(self):
+        pass
+
+    def _register_action(self, name, callback):
+        self.actions[name] = callback
+
+    def execute_actions(self, obj, actions):
+        for action in actions:
+            kwargs = dict(action.__dict__)
+            del kwargs["action"]
+            self.actions[action.action](obj, **kwargs)
+        pass
 
 
 class BaseBackend:

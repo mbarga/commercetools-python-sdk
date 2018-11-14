@@ -2,6 +2,7 @@ import pytest
 import requests_mock
 from requests.exceptions import HTTPError
 
+from commercetools import Client
 from commercetools import types
 
 
@@ -47,13 +48,16 @@ def test_product_query(client):
     assert len(result.results) == 2
     assert result.total == 2
 
-def test_product_update(client):
+
+def test_product_update(client: Client):
     """Test the return value of the update methods.
 
     It doesn't test the actual update itself.
     TODO: See if this is worth testing since we're using a mocking backend
     """
-    product = client.products.create(types.ProductDraft(key="test-product"))
+    product = client.products.create(
+        types.ProductDraft(key="test-product", slug=types.LocalizedString(nl="nl-slug"))
+    )
 
     assert product.id
     assert product.key == "test-product"
@@ -65,6 +69,7 @@ def test_product_update(client):
             types.ProductChangeSlugAction(slug=types.LocalizedString(nl="nl-slug2"))
         ],
     )
+    assert product.master_data.staged.slug["nl"] == "nl-slug2"
     assert product.key == "test-product"
 
     product = client.products.update_by_key(
