@@ -62,8 +62,9 @@ class AuthBackend(BaseBackend):
             return response
 
         if self.model.is_valid(client_id, client_secret):
-            params = parse_qs(request.body)
-            scope = params.get("scope", "manage_project:todo")
+            scope = request.qs.get('scope', ['manage_project:todo'])[0]
+            # works with no prepare()
+            # scope = request.params.get('scope', 'manage_project:todo')
             token = {
                 "access_token": str(uuid.uuid4()),
                 "expires_in": self._expire_time,
@@ -82,11 +83,12 @@ class AuthBackend(BaseBackend):
 
         if self.model.is_valid(client_id, client_secret):
             token = request.qs.get('token', [None])[0]
-            stored_tokens = [token_object.get('access_token') for token_object in self.model.tokens]
-            if token in stored_tokens:
+            stored_tokens = [(token_object.get('access_token'), token_object.get('scope')) for token_object in self.model.tokens]
+            lookup_token = [item for item in stored_tokens if item[0] == token]
+            if len(lookup_token) > 0 and token in [x[0] for x in stored_tokens]:
                 status = {
                     "active": True,
-                    "scope": "manage_project:todo",
+                    "scope": lookup_token[0][1],
                     "exp": self._expire_time
                 }
             else:
