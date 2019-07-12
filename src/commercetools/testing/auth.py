@@ -63,8 +63,6 @@ class AuthBackend(BaseBackend):
 
         if self.model.is_valid(client_id, client_secret):
             scope = request.qs.get('scope', ['manage_project:todo'])[0]
-            # works with no prepare()
-            # scope = request.params.get('scope', 'manage_project:todo')
             token = {
                 "access_token": str(uuid.uuid4()),
                 "expires_in": self._expire_time,

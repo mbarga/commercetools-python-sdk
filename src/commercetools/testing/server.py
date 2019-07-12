@@ -38,9 +38,6 @@ class Server:
 
     def __call__(self, environ, start_response):
         request = self._create_request(environ)
-        # breaks product type creation
-        # request_mock = _RequestObjectProxy(request)
-        # works with product types
         request.url = request.url.split("?")[0]
         request_mock = _RequestObjectProxy(request.prepare())
 
