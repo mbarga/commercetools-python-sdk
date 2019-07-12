@@ -7,8 +7,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -25,6 +25,7 @@ __all__ = [
     "CartDiscountLineItemsTargetSchema",
     "CartDiscountPagedQueryResponseSchema",
     "CartDiscountReferenceSchema",
+    "CartDiscountResourceIdentifierSchema",
     "CartDiscountSchema",
     "CartDiscountSetCustomFieldActionSchema",
     "CartDiscountSetCustomTypeActionSchema",
@@ -108,8 +109,11 @@ class CartDiscountDraftSchema(marshmallow.Schema):
         return types.CartDiscountDraft(**data)
 
 
-class CartDiscountPagedQueryResponseSchema(PagedQueryResponseSchema):
+class CartDiscountPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.CartDiscountPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._cart_discount.CartDiscountSchema",
         unknown=marshmallow.EXCLUDE,
@@ -141,6 +145,18 @@ class CartDiscountReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.CartDiscountReference(**data)
+
+
+class CartDiscountResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.CartDiscountResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.CartDiscountResourceIdentifier(**data)
 
 
 class CartDiscountSchema(LoggedResourceSchema):
@@ -486,7 +502,7 @@ class CartDiscountSetCustomFieldActionSchema(CartDiscountUpdateActionSchema):
 class CartDiscountSetCustomTypeActionSchema(CartDiscountUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.CartDiscountSetCustomTypeAction`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,

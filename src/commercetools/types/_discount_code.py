@@ -6,15 +6,20 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
-    from ._cart_discount import CartDiscountReference
+    from ._cart_discount import CartDiscountReference, CartDiscountResourceIdentifier
     from ._common import CreatedBy, LastModifiedBy, LocalizedString
-    from ._type import CustomFields, CustomFieldsDraft, FieldContainer, TypeReference
+    from ._type import (
+        CustomFields,
+        CustomFieldsDraft,
+        FieldContainer,
+        TypeResourceIdentifier,
+    )
 __all__ = [
     "DiscountCode",
     "DiscountCodeChangeCartDiscountsAction",
@@ -23,6 +28,7 @@ __all__ = [
     "DiscountCodeDraft",
     "DiscountCodePagedQueryResponse",
     "DiscountCodeReference",
+    "DiscountCodeResourceIdentifier",
     "DiscountCodeSetCartPredicateAction",
     "DiscountCodeSetCustomFieldAction",
     "DiscountCodeSetCustomTypeAction",
@@ -147,8 +153,8 @@ class DiscountCodeDraft(_BaseType):
     description: typing.Optional["LocalizedString"]
     #: :class:`str`
     code: typing.Optional[str]
-    #: List of :class:`commercetools.types.CartDiscountReference` `(Named` ``cartDiscounts`` `in Commercetools)`
-    cart_discounts: typing.Optional[typing.List["CartDiscountReference"]]
+    #: List of :class:`commercetools.types.CartDiscountResourceIdentifier` `(Named` ``cartDiscounts`` `in Commercetools)`
+    cart_discounts: typing.Optional[typing.List["CartDiscountResourceIdentifier"]]
     #: Optional :class:`str` `(Named` ``cartPredicate`` `in Commercetools)`
     cart_predicate: typing.Optional[str]
     #: Optional :class:`bool` `(Named` ``isActive`` `in Commercetools)`
@@ -172,7 +178,9 @@ class DiscountCodeDraft(_BaseType):
         name: typing.Optional["LocalizedString"] = None,
         description: typing.Optional["LocalizedString"] = None,
         code: typing.Optional[str] = None,
-        cart_discounts: typing.Optional[typing.List["CartDiscountReference"]] = None,
+        cart_discounts: typing.Optional[
+            typing.List["CartDiscountResourceIdentifier"]
+        ] = None,
         cart_predicate: typing.Optional[str] = None,
         is_active: typing.Optional[bool] = None,
         max_applications: typing.Optional[int] = None,
@@ -216,8 +224,14 @@ class DiscountCodeDraft(_BaseType):
         )
 
 
-class DiscountCodePagedQueryResponse(PagedQueryResponse):
+class DiscountCodePagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.DiscountCodePagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.DiscountCode`
     results: typing.Optional[typing.Sequence["DiscountCode"]]
 
@@ -229,8 +243,11 @@ class DiscountCodePagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["DiscountCode"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -249,18 +266,36 @@ class DiscountCodeReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["DiscountCode"] = None
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.DISCOUNT_CODE, id=id)
+
+    def __repr__(self) -> str:
+        return "DiscountCodeReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class DiscountCodeResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.DiscountCodeResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.DISCOUNT_CODE, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "DiscountCodeReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "DiscountCodeResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 
@@ -303,14 +338,16 @@ class DiscountCodeUpdateAction(_BaseType):
 
 class DiscountCodeChangeCartDiscountsAction(DiscountCodeUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.DiscountCodeChangeCartDiscountsActionSchema`."
-    #: List of :class:`commercetools.types.CartDiscountReference` `(Named` ``cartDiscounts`` `in Commercetools)`
-    cart_discounts: typing.Optional[typing.List["CartDiscountReference"]]
+    #: List of :class:`commercetools.types.CartDiscountResourceIdentifier` `(Named` ``cartDiscounts`` `in Commercetools)`
+    cart_discounts: typing.Optional[typing.List["CartDiscountResourceIdentifier"]]
 
     def __init__(
         self,
         *,
         action: typing.Optional[str] = None,
-        cart_discounts: typing.Optional[typing.List["CartDiscountReference"]] = None
+        cart_discounts: typing.Optional[
+            typing.List["CartDiscountResourceIdentifier"]
+        ] = None
     ) -> None:
         self.cart_discounts = cart_discounts
         super().__init__(action="changeCartDiscounts")
@@ -413,8 +450,8 @@ class DiscountCodeSetCustomFieldAction(DiscountCodeUpdateAction):
 
 class DiscountCodeSetCustomTypeAction(DiscountCodeUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.DiscountCodeSetCustomTypeActionSchema`."
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -422,7 +459,7 @@ class DiscountCodeSetCustomTypeAction(DiscountCodeUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.type = type

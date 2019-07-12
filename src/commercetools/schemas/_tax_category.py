@@ -5,8 +5,8 @@ import marshmallow
 from commercetools import helpers, types
 from commercetools.schemas._common import (
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -18,6 +18,7 @@ __all__ = [
     "TaxCategoryReferenceSchema",
     "TaxCategoryRemoveTaxRateActionSchema",
     "TaxCategoryReplaceTaxRateActionSchema",
+    "TaxCategoryResourceIdentifierSchema",
     "TaxCategorySchema",
     "TaxCategorySetDescriptionActionSchema",
     "TaxCategorySetKeyActionSchema",
@@ -61,8 +62,11 @@ class TaxCategoryDraftSchema(marshmallow.Schema):
         return types.TaxCategoryDraft(**data)
 
 
-class TaxCategoryPagedQueryResponseSchema(PagedQueryResponseSchema):
+class TaxCategoryPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.TaxCategoryPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._tax_category.TaxCategorySchema",
         unknown=marshmallow.EXCLUDE,
@@ -94,6 +98,18 @@ class TaxCategoryReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.TaxCategoryReference(**data)
+
+
+class TaxCategoryResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.TaxCategoryResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.TaxCategoryResourceIdentifier(**data)
 
 
 class TaxCategorySchema(LoggedResourceSchema):

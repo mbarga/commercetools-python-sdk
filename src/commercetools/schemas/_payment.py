@@ -7,8 +7,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 from commercetools.schemas._type import FieldContainerField
 
@@ -23,6 +23,7 @@ __all__ = [
     "PaymentMethodInfoSchema",
     "PaymentPagedQueryResponseSchema",
     "PaymentReferenceSchema",
+    "PaymentResourceIdentifierSchema",
     "PaymentSchema",
     "PaymentSetAmountPaidActionSchema",
     "PaymentSetAmountRefundedActionSchema",
@@ -39,6 +40,7 @@ __all__ = [
     "PaymentSetMethodInfoNameActionSchema",
     "PaymentSetStatusInterfaceCodeActionSchema",
     "PaymentSetStatusInterfaceTextActionSchema",
+    "PaymentStatusDraftSchema",
     "PaymentStatusSchema",
     "PaymentTransitionStateActionSchema",
     "PaymentUpdateActionSchema",
@@ -51,7 +53,7 @@ __all__ = [
 class PaymentDraftSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.PaymentDraft`."
     customer = marshmallow.fields.Nested(
-        nested="commercetools.schemas._customer.CustomerReferenceSchema",
+        nested="commercetools.schemas._customer.CustomerResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,
@@ -103,7 +105,7 @@ class PaymentDraftSchema(marshmallow.Schema):
         data_key="paymentMethodInfo",
     )
     payment_status = marshmallow.fields.Nested(
-        nested="commercetools.schemas._payment.PaymentStatusSchema",
+        nested="commercetools.schemas._payment.PaymentStatusDraftSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,
@@ -156,8 +158,11 @@ class PaymentMethodInfoSchema(marshmallow.Schema):
         return types.PaymentMethodInfo(**data)
 
 
-class PaymentPagedQueryResponseSchema(PagedQueryResponseSchema):
+class PaymentPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.PaymentPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._payment.PaymentSchema",
         unknown=marshmallow.EXCLUDE,
@@ -189,6 +194,18 @@ class PaymentReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.PaymentReference(**data)
+
+
+class PaymentResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.PaymentResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.PaymentResourceIdentifier(**data)
 
 
 class PaymentSchema(LoggedResourceSchema):
@@ -293,6 +310,29 @@ class PaymentSchema(LoggedResourceSchema):
     @marshmallow.post_load
     def post_load(self, data):
         return types.Payment(**data)
+
+
+class PaymentStatusDraftSchema(marshmallow.Schema):
+    "Marshmallow schema for :class:`commercetools.types.PaymentStatusDraft`."
+    interface_code = marshmallow.fields.String(
+        allow_none=True, missing=None, data_key="interfaceCode"
+    )
+    interface_text = marshmallow.fields.String(
+        allow_none=True, missing=None, data_key="interfaceText"
+    )
+    state = marshmallow.fields.Nested(
+        nested="commercetools.schemas._state.StateResourceIdentifierSchema",
+        unknown=marshmallow.EXCLUDE,
+        allow_none=True,
+        missing=None,
+    )
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        return types.PaymentStatusDraft(**data)
 
 
 class PaymentStatusSchema(marshmallow.Schema):
@@ -431,7 +471,7 @@ class TransactionSchema(marshmallow.Schema):
 class PaymentAddInterfaceInteractionActionSchema(PaymentUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.PaymentAddInterfaceInteractionAction`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -617,7 +657,7 @@ class PaymentSetCustomFieldActionSchema(PaymentUpdateActionSchema):
 class PaymentSetCustomTypeActionSchema(PaymentUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.PaymentSetCustomTypeAction`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,
@@ -636,7 +676,7 @@ class PaymentSetCustomTypeActionSchema(PaymentUpdateActionSchema):
 class PaymentSetCustomerActionSchema(PaymentUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.PaymentSetCustomerAction`."
     customer = marshmallow.fields.Nested(
-        nested="commercetools.schemas._customer.CustomerReferenceSchema",
+        nested="commercetools.schemas._customer.CustomerResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,
@@ -764,7 +804,7 @@ class PaymentSetStatusInterfaceTextActionSchema(PaymentUpdateActionSchema):
 class PaymentTransitionStateActionSchema(PaymentUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.PaymentTransitionStateAction`."
     state = marshmallow.fields.Nested(
-        nested="commercetools.schemas._state.StateReferenceSchema",
+        nested="commercetools.schemas._state.StateResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )

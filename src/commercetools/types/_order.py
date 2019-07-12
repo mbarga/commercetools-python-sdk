@@ -7,9 +7,9 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
@@ -31,7 +31,7 @@ if typing.TYPE_CHECKING:
         TaxMode,
         TaxedPrice,
     )
-    from ._channel import ChannelReference
+    from ._channel import ChannelReference, ChannelResourceIdentifier
     from ._common import (
         Address,
         CreatedBy,
@@ -42,14 +42,19 @@ if typing.TYPE_CHECKING:
         Price,
         PriceDraft,
     )
-    from ._customer_group import CustomerGroupReference
-    from ._payment import PaymentReference
+    from ._customer_group import CustomerGroupReference, CustomerGroupResourceIdentifier
+    from ._payment import PaymentReference, PaymentResourceIdentifier
     from ._product import Attribute
-    from ._shipping_method import ShippingMethodReference, ShippingRateDraft
-    from ._state import StateReference
+    from ._shipping_method import ShippingMethodResourceIdentifier, ShippingRateDraft
+    from ._state import StateReference, StateResourceIdentifier
     from ._store import StoreKeyReference
-    from ._tax_category import TaxCategoryReference, TaxRate
-    from ._type import CustomFields, CustomFieldsDraft, FieldContainer, TypeReference
+    from ._tax_category import TaxCategoryResourceIdentifier, TaxRate
+    from ._type import (
+        CustomFields,
+        CustomFieldsDraft,
+        FieldContainer,
+        TypeResourceIdentifier,
+    )
 __all__ = [
     "CustomLineItemReturnItem",
     "Delivery",
@@ -77,6 +82,7 @@ __all__ = [
     "OrderRemoveItemShippingAddressAction",
     "OrderRemoveParcelFromDeliveryAction",
     "OrderRemovePaymentAction",
+    "OrderResourceIdentifier",
     "OrderSetBillingAddressAction",
     "OrderSetCustomFieldAction",
     "OrderSetCustomLineItemCustomFieldAction",
@@ -244,10 +250,10 @@ class LineItemImportDraft(_BaseType):
     quantity: typing.Optional[int]
     #: Optional list of :class:`commercetools.types.ItemState`
     state: typing.Optional[typing.List["ItemState"]]
-    #: Optional :class:`commercetools.types.ChannelReference` `(Named` ``supplyChannel`` `in Commercetools)`
-    supply_channel: typing.Optional["ChannelReference"]
-    #: Optional :class:`commercetools.types.ChannelReference` `(Named` ``distributionChannel`` `in Commercetools)`
-    distribution_channel: typing.Optional["ChannelReference"]
+    #: Optional :class:`commercetools.types.ChannelResourceIdentifier` `(Named` ``supplyChannel`` `in Commercetools)`
+    supply_channel: typing.Optional["ChannelResourceIdentifier"]
+    #: Optional :class:`commercetools.types.ChannelResourceIdentifier` `(Named` ``distributionChannel`` `in Commercetools)`
+    distribution_channel: typing.Optional["ChannelResourceIdentifier"]
     #: Optional :class:`commercetools.types.TaxRate` `(Named` ``taxRate`` `in Commercetools)`
     tax_rate: typing.Optional["TaxRate"]
     #: Optional :class:`commercetools.types.CustomFieldsDraft`
@@ -264,8 +270,8 @@ class LineItemImportDraft(_BaseType):
         price: typing.Optional["PriceDraft"] = None,
         quantity: typing.Optional[int] = None,
         state: typing.Optional[typing.List["ItemState"]] = None,
-        supply_channel: typing.Optional["ChannelReference"] = None,
-        distribution_channel: typing.Optional["ChannelReference"] = None,
+        supply_channel: typing.Optional["ChannelResourceIdentifier"] = None,
+        distribution_channel: typing.Optional["ChannelResourceIdentifier"] = None,
         tax_rate: typing.Optional["TaxRate"] = None,
         custom: typing.Optional["CustomFieldsDraft"] = None,
         shipping_details: typing.Optional["ItemShippingDetailsDraft"] = None
@@ -560,8 +566,8 @@ class OrderImportDraft(_BaseType):
     shipping_address: typing.Optional["Address"]
     #: Optional :class:`commercetools.types.Address` `(Named` ``billingAddress`` `in Commercetools)`
     billing_address: typing.Optional["Address"]
-    #: Optional :class:`commercetools.types.CustomerGroupReference` `(Named` ``customerGroup`` `in Commercetools)`
-    customer_group: typing.Optional["CustomerGroupReference"]
+    #: Optional :class:`commercetools.types.CustomerGroupResourceIdentifier` `(Named` ``customerGroup`` `in Commercetools)`
+    customer_group: typing.Optional["CustomerGroupResourceIdentifier"]
     #: Optional :class:`str`
     country: typing.Optional[str]
     #: Optional :class:`commercetools.types.OrderState` `(Named` ``orderState`` `in Commercetools)`
@@ -595,7 +601,7 @@ class OrderImportDraft(_BaseType):
         taxed_price: typing.Optional["TaxedPrice"] = None,
         shipping_address: typing.Optional["Address"] = None,
         billing_address: typing.Optional["Address"] = None,
-        customer_group: typing.Optional["CustomerGroupReference"] = None,
+        customer_group: typing.Optional["CustomerGroupResourceIdentifier"] = None,
         country: typing.Optional[str] = None,
         order_state: typing.Optional["OrderState"] = None,
         shipment_state: typing.Optional["ShipmentState"] = None,
@@ -657,8 +663,14 @@ class OrderImportDraft(_BaseType):
         )
 
 
-class OrderPagedQueryResponse(PagedQueryResponse):
+class OrderPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.Order`
     results: typing.Optional[typing.Sequence["Order"]]
 
@@ -670,8 +682,11 @@ class OrderPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["Order"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return "OrderPagedQueryResponse(count=%r, total=%r, offset=%r, results=%r)" % (
@@ -692,18 +707,36 @@ class OrderReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["Order"] = None
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.ORDER, id=id)
+
+    def __repr__(self) -> str:
+        return "OrderReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class OrderResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.ORDER, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "OrderReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "OrderResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 
@@ -1076,10 +1109,10 @@ class ShippingInfoImportDraft(_BaseType):
     shipping_rate: typing.Optional["ShippingRateDraft"]
     #: Optional :class:`commercetools.types.TaxRate` `(Named` ``taxRate`` `in Commercetools)`
     tax_rate: typing.Optional["TaxRate"]
-    #: Optional :class:`commercetools.types.TaxCategoryReference` `(Named` ``taxCategory`` `in Commercetools)`
-    tax_category: typing.Optional["TaxCategoryReference"]
-    #: Optional :class:`commercetools.types.ShippingMethodReference` `(Named` ``shippingMethod`` `in Commercetools)`
-    shipping_method: typing.Optional["ShippingMethodReference"]
+    #: Optional :class:`commercetools.types.TaxCategoryResourceIdentifier` `(Named` ``taxCategory`` `in Commercetools)`
+    tax_category: typing.Optional["TaxCategoryResourceIdentifier"]
+    #: Optional :class:`commercetools.types.ShippingMethodResourceIdentifier` `(Named` ``shippingMethod`` `in Commercetools)`
+    shipping_method: typing.Optional["ShippingMethodResourceIdentifier"]
     #: Optional list of :class:`commercetools.types.Delivery`
     deliveries: typing.Optional[typing.List["Delivery"]]
     #: Optional :class:`commercetools.types.DiscountedLineItemPriceDraft` `(Named` ``discountedPrice`` `in Commercetools)`
@@ -1094,8 +1127,8 @@ class ShippingInfoImportDraft(_BaseType):
         price: typing.Optional["Money"] = None,
         shipping_rate: typing.Optional["ShippingRateDraft"] = None,
         tax_rate: typing.Optional["TaxRate"] = None,
-        tax_category: typing.Optional["TaxCategoryReference"] = None,
-        shipping_method: typing.Optional["ShippingMethodReference"] = None,
+        tax_category: typing.Optional["TaxCategoryResourceIdentifier"] = None,
+        shipping_method: typing.Optional["ShippingMethodResourceIdentifier"] = None,
         deliveries: typing.Optional[typing.List["Delivery"]] = None,
         discounted_price: typing.Optional["DiscountedLineItemPriceDraft"] = None,
         shipping_method_state: typing.Optional["ShippingMethodState"] = None
@@ -1423,14 +1456,14 @@ class OrderAddParcelToDeliveryAction(OrderUpdateAction):
 
 class OrderAddPaymentAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderAddPaymentActionSchema`."
-    #: :class:`commercetools.types.PaymentReference`
-    payment: typing.Optional["PaymentReference"]
+    #: :class:`commercetools.types.PaymentResourceIdentifier`
+    payment: typing.Optional["PaymentResourceIdentifier"]
 
     def __init__(
         self,
         *,
         action: typing.Optional[str] = None,
-        payment: typing.Optional["PaymentReference"] = None
+        payment: typing.Optional["PaymentResourceIdentifier"] = None
     ) -> None:
         self.payment = payment
         super().__init__(action="addPayment")
@@ -1649,14 +1682,14 @@ class OrderRemoveParcelFromDeliveryAction(OrderUpdateAction):
 
 class OrderRemovePaymentAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderRemovePaymentActionSchema`."
-    #: :class:`commercetools.types.PaymentReference`
-    payment: typing.Optional["PaymentReference"]
+    #: :class:`commercetools.types.PaymentResourceIdentifier`
+    payment: typing.Optional["PaymentResourceIdentifier"]
 
     def __init__(
         self,
         *,
         action: typing.Optional[str] = None,
-        payment: typing.Optional["PaymentReference"] = None
+        payment: typing.Optional["PaymentResourceIdentifier"] = None
     ) -> None:
         self.payment = payment
         super().__init__(action="removePayment")
@@ -1748,8 +1781,8 @@ class OrderSetCustomLineItemCustomTypeAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderSetCustomLineItemCustomTypeActionSchema`."
     #: :class:`str` `(Named` ``customLineItemId`` `in Commercetools)`
     custom_line_item_id: typing.Optional[str]
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -1758,7 +1791,7 @@ class OrderSetCustomLineItemCustomTypeAction(OrderUpdateAction):
         *,
         action: typing.Optional[str] = None,
         custom_line_item_id: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.custom_line_item_id = custom_line_item_id
@@ -1800,8 +1833,8 @@ class OrderSetCustomLineItemShippingDetailsAction(OrderUpdateAction):
 
 class OrderSetCustomTypeAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderSetCustomTypeActionSchema`."
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -1809,7 +1842,7 @@ class OrderSetCustomTypeAction(OrderUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.type = type
@@ -1947,8 +1980,8 @@ class OrderSetLineItemCustomTypeAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderSetLineItemCustomTypeActionSchema`."
     #: :class:`str` `(Named` ``lineItemId`` `in Commercetools)`
     line_item_id: typing.Optional[str]
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -1957,7 +1990,7 @@ class OrderSetLineItemCustomTypeAction(OrderUpdateAction):
         *,
         action: typing.Optional[str] = None,
         line_item_id: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.line_item_id = line_item_id
@@ -2189,10 +2222,10 @@ class OrderTransitionCustomLineItemStateAction(OrderUpdateAction):
     custom_line_item_id: typing.Optional[str]
     #: :class:`int`
     quantity: typing.Optional[int]
-    #: :class:`commercetools.types.StateReference` `(Named` ``fromState`` `in Commercetools)`
-    from_state: typing.Optional["StateReference"]
-    #: :class:`commercetools.types.StateReference` `(Named` ``toState`` `in Commercetools)`
-    to_state: typing.Optional["StateReference"]
+    #: :class:`commercetools.types.StateResourceIdentifier` `(Named` ``fromState`` `in Commercetools)`
+    from_state: typing.Optional["StateResourceIdentifier"]
+    #: :class:`commercetools.types.StateResourceIdentifier` `(Named` ``toState`` `in Commercetools)`
+    to_state: typing.Optional["StateResourceIdentifier"]
     #: Optional :class:`datetime.datetime` `(Named` ``actualTransitionDate`` `in Commercetools)`
     actual_transition_date: typing.Optional[datetime.datetime]
 
@@ -2202,8 +2235,8 @@ class OrderTransitionCustomLineItemStateAction(OrderUpdateAction):
         action: typing.Optional[str] = None,
         custom_line_item_id: typing.Optional[str] = None,
         quantity: typing.Optional[int] = None,
-        from_state: typing.Optional["StateReference"] = None,
-        to_state: typing.Optional["StateReference"] = None,
+        from_state: typing.Optional["StateResourceIdentifier"] = None,
+        to_state: typing.Optional["StateResourceIdentifier"] = None,
         actual_transition_date: typing.Optional[datetime.datetime] = None
     ) -> None:
         self.custom_line_item_id = custom_line_item_id
@@ -2233,10 +2266,10 @@ class OrderTransitionLineItemStateAction(OrderUpdateAction):
     line_item_id: typing.Optional[str]
     #: :class:`int`
     quantity: typing.Optional[int]
-    #: :class:`commercetools.types.StateReference` `(Named` ``fromState`` `in Commercetools)`
-    from_state: typing.Optional["StateReference"]
-    #: :class:`commercetools.types.StateReference` `(Named` ``toState`` `in Commercetools)`
-    to_state: typing.Optional["StateReference"]
+    #: :class:`commercetools.types.StateResourceIdentifier` `(Named` ``fromState`` `in Commercetools)`
+    from_state: typing.Optional["StateResourceIdentifier"]
+    #: :class:`commercetools.types.StateResourceIdentifier` `(Named` ``toState`` `in Commercetools)`
+    to_state: typing.Optional["StateResourceIdentifier"]
     #: Optional :class:`datetime.datetime` `(Named` ``actualTransitionDate`` `in Commercetools)`
     actual_transition_date: typing.Optional[datetime.datetime]
 
@@ -2246,8 +2279,8 @@ class OrderTransitionLineItemStateAction(OrderUpdateAction):
         action: typing.Optional[str] = None,
         line_item_id: typing.Optional[str] = None,
         quantity: typing.Optional[int] = None,
-        from_state: typing.Optional["StateReference"] = None,
-        to_state: typing.Optional["StateReference"] = None,
+        from_state: typing.Optional["StateResourceIdentifier"] = None,
+        to_state: typing.Optional["StateResourceIdentifier"] = None,
         actual_transition_date: typing.Optional[datetime.datetime] = None
     ) -> None:
         self.line_item_id = line_item_id
@@ -2273,8 +2306,8 @@ class OrderTransitionLineItemStateAction(OrderUpdateAction):
 
 class OrderTransitionStateAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderTransitionStateActionSchema`."
-    #: :class:`commercetools.types.StateReference`
-    state: typing.Optional["StateReference"]
+    #: :class:`commercetools.types.StateResourceIdentifier`
+    state: typing.Optional["StateResourceIdentifier"]
     #: Optional :class:`bool`
     force: typing.Optional[bool]
 
@@ -2282,7 +2315,7 @@ class OrderTransitionStateAction(OrderUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        state: typing.Optional["StateReference"] = None,
+        state: typing.Optional["StateResourceIdentifier"] = None,
         force: typing.Optional[bool] = None
     ) -> None:
         self.state = state
@@ -2320,8 +2353,8 @@ class OrderUpdateItemShippingAddressAction(OrderUpdateAction):
 
 class OrderUpdateSyncInfoAction(OrderUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.OrderUpdateSyncInfoActionSchema`."
-    #: :class:`commercetools.types.ChannelReference`
-    channel: typing.Optional["ChannelReference"]
+    #: :class:`commercetools.types.ChannelResourceIdentifier`
+    channel: typing.Optional["ChannelResourceIdentifier"]
     #: Optional :class:`str` `(Named` ``externalId`` `in Commercetools)`
     external_id: typing.Optional[str]
     #: Optional :class:`datetime.datetime` `(Named` ``syncedAt`` `in Commercetools)`
@@ -2331,7 +2364,7 @@ class OrderUpdateSyncInfoAction(OrderUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        channel: typing.Optional["ChannelReference"] = None,
+        channel: typing.Optional["ChannelResourceIdentifier"] = None,
         external_id: typing.Optional[str] = None,
         synced_at: typing.Optional[datetime.datetime] = None
     ) -> None:

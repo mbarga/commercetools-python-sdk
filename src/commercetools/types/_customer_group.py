@@ -6,20 +6,21 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
     from ._common import CreatedBy, LastModifiedBy
-    from ._type import CustomFields, FieldContainer, TypeReference
+    from ._type import CustomFields, FieldContainer, TypeResourceIdentifier
 __all__ = [
     "CustomerGroup",
     "CustomerGroupChangeNameAction",
     "CustomerGroupDraft",
     "CustomerGroupPagedQueryResponse",
     "CustomerGroupReference",
+    "CustomerGroupResourceIdentifier",
     "CustomerGroupSetCustomFieldAction",
     "CustomerGroupSetCustomTypeAction",
     "CustomerGroupSetKeyAction",
@@ -108,8 +109,14 @@ class CustomerGroupDraft(_BaseType):
         )
 
 
-class CustomerGroupPagedQueryResponse(PagedQueryResponse):
+class CustomerGroupPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerGroupPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.CustomerGroup`
     results: typing.Optional[typing.Sequence["CustomerGroup"]]
 
@@ -121,8 +128,11 @@ class CustomerGroupPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["CustomerGroup"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -141,18 +151,36 @@ class CustomerGroupReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["CustomerGroup"] = None
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.CUSTOMER_GROUP, id=id)
+
+    def __repr__(self) -> str:
+        return "CustomerGroupReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class CustomerGroupResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerGroupResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.CUSTOMER_GROUP, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "CustomerGroupReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "CustomerGroupResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 
@@ -239,8 +267,8 @@ class CustomerGroupSetCustomFieldAction(CustomerGroupUpdateAction):
 
 class CustomerGroupSetCustomTypeAction(CustomerGroupUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerGroupSetCustomTypeActionSchema`."
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -248,7 +276,7 @@ class CustomerGroupSetCustomTypeAction(CustomerGroupUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.type = type

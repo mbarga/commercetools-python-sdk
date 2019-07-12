@@ -7,13 +7,13 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
-    from ._common import CreatedBy, LastModifiedBy, LocalizedString, ResourceIdentifier
+    from ._common import CreatedBy, LastModifiedBy, LocalizedString
 __all__ = [
     "CustomFieldBooleanType",
     "CustomFieldDateTimeType",
@@ -53,6 +53,7 @@ __all__ = [
     "TypePagedQueryResponse",
     "TypeReference",
     "TypeRemoveFieldDefinitionAction",
+    "TypeResourceIdentifier",
     "TypeSetDescriptionAction",
     "TypeTextInputHint",
     "TypeUpdate",
@@ -125,15 +126,15 @@ class CustomFields(_BaseType):
 
 class CustomFieldsDraft(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomFieldsDraftSchema`."
-    #: :class:`commercetools.types.ResourceIdentifier`
-    type: typing.Optional["ResourceIdentifier"]
+    #: :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
     def __init__(
         self,
         *,
-        type: typing.Optional["ResourceIdentifier"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None,
     ) -> None:
         self.type = type
@@ -322,8 +323,14 @@ class TypeDraft(_BaseType):
         )
 
 
-class TypePagedQueryResponse(PagedQueryResponse):
+class TypePagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.TypePagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.Type`
     results: typing.Optional[typing.Sequence["Type"]]
 
@@ -335,8 +342,11 @@ class TypePagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["Type"]] = None,
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return "TypePagedQueryResponse(count=%r, total=%r, offset=%r, results=%r)" % (
@@ -357,18 +367,36 @@ class TypeReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["Type"] = None,
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.TYPE, id=id)
+
+    def __repr__(self) -> str:
+        return "TypeReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class TypeResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.TypeResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None,
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.TYPE, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "TypeReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "TypeResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 

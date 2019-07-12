@@ -7,9 +7,10 @@ import typing
 from commercetools.types._abstract import _BaseType
 
 if typing.TYPE_CHECKING:
-    from ._channel import ChannelReference
+    from ._channel import ChannelReference, ChannelResourceIdentifier
     from ._customer import CustomerReference
-    from ._customer_group import CustomerGroupReference
+    from ._customer_group import CustomerGroupReference, CustomerGroupResourceIdentifier
+    from ._product import FacetResults
     from ._product_discount import ProductDiscountReference
     from ._type import CustomFields, CustomFieldsDraft
 __all__ = [
@@ -432,21 +433,13 @@ class GeoJson(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.GeoJsonSchema`."
     #: :class:`str`
     type: typing.Optional[str]
-    #: :class:`list`
-    coordinates: typing.Optional[list]
 
-    def __init__(
-        self,
-        *,
-        type: typing.Optional[str] = None,
-        coordinates: typing.Optional[list] = None,
-    ) -> None:
+    def __init__(self, *, type: typing.Optional[str] = None) -> None:
         self.type = type
-        self.coordinates = coordinates
         super().__init__()
 
     def __repr__(self) -> str:
-        return "GeoJson(type=%r, coordinates=%r)" % (self.type, self.coordinates)
+        return "GeoJson(type=%r)" % (self.type,)
 
 
 class Image(_BaseType):
@@ -496,6 +489,27 @@ class ImageDimensions(_BaseType):
         return "ImageDimensions(w=%r, h=%r)" % (self.w, self.h)
 
 
+class KeyReference(_BaseType):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.KeyReferenceSchema`."
+    #: :class:`commercetools.types.ReferenceTypeId` `(Named` ``typeId`` `in Commercetools)`
+    type_id: typing.Optional["ReferenceTypeId"]
+    #: :class:`str`
+    key: typing.Optional[str]
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        key: typing.Optional[str] = None,
+    ) -> None:
+        self.type_id = type_id
+        self.key = key
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return "KeyReference(type_id=%r, key=%r)" % (self.type_id, self.key)
+
+
 class LocalizedString(typing.Dict[(str, str)]):
     def __repr__(self) -> str:
         return "LocalizedString(%s)" % (
@@ -542,6 +556,10 @@ class PagedQueryResponse(_BaseType):
     offset: typing.Optional[int]
     #: List of :class:`commercetools.types.BaseResource`
     results: typing.Optional[typing.Sequence["BaseResource"]]
+    #: Optional :class:`commercetools.types.FacetResults`
+    facets: typing.Optional["FacetResults"]
+    #: Optional :class:`object`
+    meta: typing.Optional[object]
 
     def __init__(
         self,
@@ -550,19 +568,28 @@ class PagedQueryResponse(_BaseType):
         total: typing.Optional[int] = None,
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["BaseResource"]] = None,
+        facets: typing.Optional["FacetResults"] = None,
+        meta: typing.Optional[object] = None,
     ) -> None:
         self.count = count
         self.total = total
         self.offset = offset
         self.results = results
+        self.facets = facets
+        self.meta = meta
         super().__init__()
 
     def __repr__(self) -> str:
-        return "PagedQueryResponse(count=%r, total=%r, offset=%r, results=%r)" % (
-            self.count,
-            self.total,
-            self.offset,
-            self.results,
+        return (
+            "PagedQueryResponse(count=%r, total=%r, offset=%r, results=%r, facets=%r, meta=%r)"
+            % (
+                self.count,
+                self.total,
+                self.offset,
+                self.results,
+                self.facets,
+                self.meta,
+            )
         )
 
 
@@ -639,10 +666,10 @@ class PriceDraft(_BaseType):
     value: typing.Optional["Money"]
     #: Optional :class:`str`
     country: typing.Optional["str"]
-    #: Optional :class:`commercetools.types.CustomerGroupReference` `(Named` ``customerGroup`` `in Commercetools)`
-    customer_group: typing.Optional["CustomerGroupReference"]
-    #: Optional :class:`commercetools.types.ChannelReference`
-    channel: typing.Optional["ChannelReference"]
+    #: Optional :class:`commercetools.types.CustomerGroupResourceIdentifier` `(Named` ``customerGroup`` `in Commercetools)`
+    customer_group: typing.Optional["CustomerGroupResourceIdentifier"]
+    #: Optional :class:`commercetools.types.ChannelResourceIdentifier`
+    channel: typing.Optional["ChannelResourceIdentifier"]
     #: Optional :class:`datetime.datetime` `(Named` ``validFrom`` `in Commercetools)`
     valid_from: typing.Optional[datetime.datetime]
     #: Optional :class:`datetime.datetime` `(Named` ``validUntil`` `in Commercetools)`
@@ -657,8 +684,8 @@ class PriceDraft(_BaseType):
         *,
         value: typing.Optional["Money"] = None,
         country: typing.Optional["str"] = None,
-        customer_group: typing.Optional["CustomerGroupReference"] = None,
-        channel: typing.Optional["ChannelReference"] = None,
+        customer_group: typing.Optional["CustomerGroupResourceIdentifier"] = None,
+        channel: typing.Optional["ChannelResourceIdentifier"] = None,
         valid_from: typing.Optional[datetime.datetime] = None,
         valid_until: typing.Optional[datetime.datetime] = None,
         custom: typing.Optional["CustomFieldsDraft"] = None,
@@ -712,6 +739,27 @@ class PriceTier(_BaseType):
             self.minimum_quantity,
             self.value,
         )
+
+
+class Reference(_BaseType):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.ReferenceSchema`."
+    #: :class:`commercetools.types.ReferenceTypeId` `(Named` ``typeId`` `in Commercetools)`
+    type_id: typing.Optional["ReferenceTypeId"]
+    #: :class:`str`
+    id: typing.Optional[str]
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+    ) -> None:
+        self.type_id = type_id
+        self.id = id
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return "Reference(type_id=%r, id=%r)" % (self.type_id, self.id)
 
 
 class ReferenceTypeId(enum.Enum):
@@ -907,33 +955,10 @@ class GeoJsonPoint(GeoJson):
         coordinates: typing.Optional[list] = None,
     ) -> None:
         self.coordinates = coordinates
-        super().__init__(type="Point", coordinates=coordinates)
+        super().__init__(type="Point")
 
     def __repr__(self) -> str:
         return "GeoJsonPoint(type=%r, coordinates=%r)" % (self.type, self.coordinates)
-
-
-class KeyReference(ResourceIdentifier):
-    "Corresponding marshmallow schema is :class:`commercetools.schemas.KeyReferenceSchema`."
-    #: Optional :class:`commercetools.types.ReferenceTypeId` `(Named` ``typeId`` `in Commercetools)`
-    type_id: typing.Optional["ReferenceTypeId"]
-
-    def __init__(
-        self,
-        *,
-        type_id: typing.Optional["ReferenceTypeId"] = None,
-        id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
-    ) -> None:
-        self.type_id = type_id
-        super().__init__(type_id=type_id, id=id, key=key)
-
-    def __repr__(self) -> str:
-        return "KeyReference(type_id=%r, id=%r, key=%r)" % (
-            self.type_id,
-            self.id,
-            self.key,
-        )
 
 
 class LastModifiedBy(ClientLogging):
@@ -998,29 +1023,6 @@ class LoggedResource(BaseResource):
                 self.last_modified_by,
                 self.created_by,
             )
-        )
-
-
-class Reference(ResourceIdentifier):
-    "Corresponding marshmallow schema is :class:`commercetools.schemas.ReferenceSchema`."
-    #: Optional :class:`commercetools.types.ReferenceTypeId` `(Named` ``typeId`` `in Commercetools)`
-    type_id: typing.Optional["ReferenceTypeId"]
-
-    def __init__(
-        self,
-        *,
-        type_id: typing.Optional["ReferenceTypeId"] = None,
-        id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
-    ) -> None:
-        self.type_id = type_id
-        super().__init__(type_id=type_id, id=id, key=key)
-
-    def __repr__(self) -> str:
-        return "Reference(type_id=%r, id=%r, key=%r)" % (
-            self.type_id,
-            self.id,
-            self.key,
         )
 
 

@@ -5,8 +5,8 @@ import marshmallow
 from commercetools import helpers, types
 from commercetools.schemas._common import (
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 from commercetools.schemas._type import FieldContainerField
 
@@ -15,6 +15,7 @@ __all__ = [
     "CustomerGroupDraftSchema",
     "CustomerGroupPagedQueryResponseSchema",
     "CustomerGroupReferenceSchema",
+    "CustomerGroupResourceIdentifierSchema",
     "CustomerGroupSchema",
     "CustomerGroupSetCustomFieldActionSchema",
     "CustomerGroupSetCustomTypeActionSchema",
@@ -43,8 +44,11 @@ class CustomerGroupDraftSchema(marshmallow.Schema):
         return types.CustomerGroupDraft(**data)
 
 
-class CustomerGroupPagedQueryResponseSchema(PagedQueryResponseSchema):
+class CustomerGroupPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.CustomerGroupPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._customer_group.CustomerGroupSchema",
         unknown=marshmallow.EXCLUDE,
@@ -76,6 +80,18 @@ class CustomerGroupReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.CustomerGroupReference(**data)
+
+
+class CustomerGroupResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.CustomerGroupResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.CustomerGroupResourceIdentifier(**data)
 
 
 class CustomerGroupSchema(LoggedResourceSchema):
@@ -166,7 +182,7 @@ class CustomerGroupSetCustomFieldActionSchema(CustomerGroupUpdateActionSchema):
 class CustomerGroupSetCustomTypeActionSchema(CustomerGroupUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.CustomerGroupSetCustomTypeAction`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,

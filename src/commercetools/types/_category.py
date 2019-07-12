@@ -6,9 +6,9 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
@@ -20,7 +20,12 @@ if typing.TYPE_CHECKING:
         LastModifiedBy,
         LocalizedString,
     )
-    from ._type import CustomFields, CustomFieldsDraft, FieldContainer, TypeReference
+    from ._type import (
+        CustomFields,
+        CustomFieldsDraft,
+        FieldContainer,
+        TypeResourceIdentifier,
+    )
 __all__ = [
     "Category",
     "CategoryAddAssetAction",
@@ -34,6 +39,7 @@ __all__ = [
     "CategoryPagedQueryResponse",
     "CategoryReference",
     "CategoryRemoveAssetAction",
+    "CategoryResourceIdentifier",
     "CategorySetAssetCustomFieldAction",
     "CategorySetAssetCustomTypeAction",
     "CategorySetAssetDescriptionAction",
@@ -162,8 +168,8 @@ class CategoryDraft(_BaseType):
     slug: typing.Optional["LocalizedString"]
     #: Optional :class:`commercetools.types.LocalizedString`
     description: typing.Optional["LocalizedString"]
-    #: Optional :class:`commercetools.types.CategoryReference`
-    parent: typing.Optional["CategoryReference"]
+    #: Optional :class:`commercetools.types.CategoryResourceIdentifier`
+    parent: typing.Optional["CategoryResourceIdentifier"]
     #: Optional :class:`str` `(Named` ``orderHint`` `in Commercetools)`
     order_hint: typing.Optional[str]
     #: Optional :class:`str` `(Named` ``externalId`` `in Commercetools)`
@@ -187,7 +193,7 @@ class CategoryDraft(_BaseType):
         name: typing.Optional["LocalizedString"] = None,
         slug: typing.Optional["LocalizedString"] = None,
         description: typing.Optional["LocalizedString"] = None,
-        parent: typing.Optional["CategoryReference"] = None,
+        parent: typing.Optional["CategoryResourceIdentifier"] = None,
         order_hint: typing.Optional[str] = None,
         external_id: typing.Optional[str] = None,
         meta_title: typing.Optional["LocalizedString"] = None,
@@ -231,8 +237,14 @@ class CategoryDraft(_BaseType):
         )
 
 
-class CategoryPagedQueryResponse(PagedQueryResponse):
+class CategoryPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CategoryPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.Category`
     results: typing.Optional[typing.Sequence["Category"]]
 
@@ -244,8 +256,11 @@ class CategoryPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["Category"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -264,18 +279,36 @@ class CategoryReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["Category"] = None
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.CATEGORY, id=id)
+
+    def __repr__(self) -> str:
+        return "CategoryReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class CategoryResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.CategoryResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.CATEGORY, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "CategoryReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "CategoryResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 
@@ -430,14 +463,14 @@ class CategoryChangeOrderHintAction(CategoryUpdateAction):
 
 class CategoryChangeParentAction(CategoryUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CategoryChangeParentActionSchema`."
-    #: :class:`commercetools.types.CategoryReference`
-    parent: typing.Optional["CategoryReference"]
+    #: :class:`commercetools.types.CategoryResourceIdentifier`
+    parent: typing.Optional["CategoryResourceIdentifier"]
 
     def __init__(
         self,
         *,
         action: typing.Optional[str] = None,
-        parent: typing.Optional["CategoryReference"] = None
+        parent: typing.Optional["CategoryResourceIdentifier"] = None
     ) -> None:
         self.parent = parent
         super().__init__(action="changeParent")
@@ -532,8 +565,8 @@ class CategorySetAssetCustomTypeAction(CategoryUpdateAction):
     asset_id: typing.Optional[str]
     #: Optional :class:`str` `(Named` ``assetKey`` `in Commercetools)`
     asset_key: typing.Optional[str]
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`object`
     fields: typing.Optional[object]
 
@@ -543,7 +576,7 @@ class CategorySetAssetCustomTypeAction(CategoryUpdateAction):
         action: typing.Optional[str] = None,
         asset_id: typing.Optional[str] = None,
         asset_key: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional[object] = None
     ) -> None:
         self.asset_id = asset_id
@@ -700,8 +733,8 @@ class CategorySetCustomFieldAction(CategoryUpdateAction):
 
 class CategorySetCustomTypeAction(CategoryUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CategorySetCustomTypeActionSchema`."
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -709,7 +742,7 @@ class CategorySetCustomTypeAction(CategoryUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.type = type

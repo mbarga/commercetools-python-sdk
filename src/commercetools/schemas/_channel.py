@@ -7,8 +7,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 from commercetools.schemas._type import FieldContainerField
 
@@ -21,6 +21,7 @@ __all__ = [
     "ChannelPagedQueryResponseSchema",
     "ChannelReferenceSchema",
     "ChannelRemoveRolesActionSchema",
+    "ChannelResourceIdentifierSchema",
     "ChannelSchema",
     "ChannelSetAddressActionSchema",
     "ChannelSetCustomFieldActionSchema",
@@ -68,8 +69,11 @@ class ChannelDraftSchema(marshmallow.Schema):
         return types.ChannelDraft(**data)
 
 
-class ChannelPagedQueryResponseSchema(PagedQueryResponseSchema):
+class ChannelPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.ChannelPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._channel.ChannelSchema",
         unknown=marshmallow.EXCLUDE,
@@ -101,6 +105,18 @@ class ChannelReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.ChannelReference(**data)
+
+
+class ChannelResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.ChannelResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.ChannelResourceIdentifier(**data)
 
 
 class ChannelSchema(LoggedResourceSchema):
@@ -295,7 +311,7 @@ class ChannelSetCustomFieldActionSchema(ChannelUpdateActionSchema):
 class ChannelSetCustomTypeActionSchema(ChannelUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.ChannelSetCustomTypeAction`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,

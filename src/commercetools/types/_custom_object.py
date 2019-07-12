@@ -4,12 +4,7 @@ import datetime
 import typing
 
 from commercetools.types._abstract import _BaseType
-from commercetools.types._common import (
-    BaseResource,
-    PagedQueryResponse,
-    Reference,
-    ReferenceTypeId,
-)
+from commercetools.types._common import BaseResource, Reference, ReferenceTypeId
 
 __all__ = [
     "CustomObject",
@@ -98,8 +93,14 @@ class CustomObjectDraft(_BaseType):
         )
 
 
-class CustomObjectPagedQueryResponse(PagedQueryResponse):
+class CustomObjectPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomObjectPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.CustomObject`
     results: typing.Optional[typing.Sequence["CustomObject"]]
 
@@ -111,8 +112,11 @@ class CustomObjectPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["CustomObject"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -131,16 +135,14 @@ class CustomObjectReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["CustomObject"] = None
     ) -> None:
         self.obj = obj
-        super().__init__(type_id=ReferenceTypeId.KEY_VALUE_DOCUMENT, id=id, key=key)
+        super().__init__(type_id=ReferenceTypeId.KEY_VALUE_DOCUMENT, id=id)
 
     def __repr__(self) -> str:
-        return "CustomObjectReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "CustomObjectReference(type_id=%r, id=%r, obj=%r)" % (
             self.type_id,
             self.id,
-            self.key,
             self.obj,
         )

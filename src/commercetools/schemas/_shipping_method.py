@@ -6,8 +6,8 @@ import marshmallow_enum
 from commercetools import helpers, types
 from commercetools.schemas._common import (
     BaseResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -25,6 +25,7 @@ __all__ = [
     "ShippingMethodReferenceSchema",
     "ShippingMethodRemoveShippingRateActionSchema",
     "ShippingMethodRemoveZoneActionSchema",
+    "ShippingMethodResourceIdentifierSchema",
     "ShippingMethodSchema",
     "ShippingMethodSetDescriptionActionSchema",
     "ShippingMethodSetKeyActionSchema",
@@ -58,7 +59,7 @@ class ShippingMethodDraftSchema(marshmallow.Schema):
     name = marshmallow.fields.String(allow_none=True)
     description = marshmallow.fields.String(allow_none=True, missing=None)
     tax_category = marshmallow.fields.Nested(
-        nested="commercetools.schemas._tax_category.TaxCategoryReferenceSchema",
+        nested="commercetools.schemas._tax_category.TaxCategoryResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         data_key="taxCategory",
@@ -81,8 +82,11 @@ class ShippingMethodDraftSchema(marshmallow.Schema):
         return types.ShippingMethodDraft(**data)
 
 
-class ShippingMethodPagedQueryResponseSchema(PagedQueryResponseSchema):
+class ShippingMethodPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.ShippingMethodPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._shipping_method.ShippingMethodSchema",
         unknown=marshmallow.EXCLUDE,
@@ -114,6 +118,18 @@ class ShippingMethodReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.ShippingMethodReference(**data)
+
+
+class ShippingMethodResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.ShippingMethodResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.ShippingMethodResourceIdentifier(**data)
 
 
 class ShippingMethodSchema(BaseResourceSchema):
@@ -288,7 +304,7 @@ class ShippingRateSchema(marshmallow.Schema):
 class ZoneRateDraftSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.ZoneRateDraft`."
     zone = marshmallow.fields.Nested(
-        nested="commercetools.schemas._zone.ZoneReferenceSchema",
+        nested="commercetools.schemas._zone.ZoneResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -407,7 +423,7 @@ class CartValueTierSchema(ShippingRatePriceTierSchema):
 class ShippingMethodAddShippingRateActionSchema(ShippingMethodUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.ShippingMethodAddShippingRateAction`."
     zone = marshmallow.fields.Nested(
-        nested="commercetools.schemas._zone.ZoneReferenceSchema",
+        nested="commercetools.schemas._zone.ZoneResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -430,7 +446,7 @@ class ShippingMethodAddShippingRateActionSchema(ShippingMethodUpdateActionSchema
 class ShippingMethodAddZoneActionSchema(ShippingMethodUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.ShippingMethodAddZoneAction`."
     zone = marshmallow.fields.Nested(
-        nested="commercetools.schemas._zone.ZoneReferenceSchema",
+        nested="commercetools.schemas._zone.ZoneResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -473,7 +489,7 @@ class ShippingMethodChangeNameActionSchema(ShippingMethodUpdateActionSchema):
 class ShippingMethodChangeTaxCategoryActionSchema(ShippingMethodUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.ShippingMethodChangeTaxCategoryAction`."
     tax_category = marshmallow.fields.Nested(
-        nested="commercetools.schemas._tax_category.TaxCategoryReferenceSchema",
+        nested="commercetools.schemas._tax_category.TaxCategoryResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         data_key="taxCategory",
@@ -491,7 +507,7 @@ class ShippingMethodChangeTaxCategoryActionSchema(ShippingMethodUpdateActionSche
 class ShippingMethodRemoveShippingRateActionSchema(ShippingMethodUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.ShippingMethodRemoveShippingRateAction`."
     zone = marshmallow.fields.Nested(
-        nested="commercetools.schemas._zone.ZoneReferenceSchema",
+        nested="commercetools.schemas._zone.ZoneResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -514,7 +530,7 @@ class ShippingMethodRemoveShippingRateActionSchema(ShippingMethodUpdateActionSch
 class ShippingMethodRemoveZoneActionSchema(ShippingMethodUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.ShippingMethodRemoveZoneAction`."
     zone = marshmallow.fields.Nested(
-        nested="commercetools.schemas._zone.ZoneReferenceSchema",
+        nested="commercetools.schemas._zone.ZoneResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )

@@ -6,8 +6,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -20,6 +20,7 @@ __all__ = [
     "ProductDiscountMatchQuerySchema",
     "ProductDiscountPagedQueryResponseSchema",
     "ProductDiscountReferenceSchema",
+    "ProductDiscountResourceIdentifierSchema",
     "ProductDiscountSchema",
     "ProductDiscountSetDescriptionActionSchema",
     "ProductDiscountSetKeyActionSchema",
@@ -87,8 +88,11 @@ class ProductDiscountMatchQuerySchema(marshmallow.Schema):
         return types.ProductDiscountMatchQuery(**data)
 
 
-class ProductDiscountPagedQueryResponseSchema(PagedQueryResponseSchema):
+class ProductDiscountPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.ProductDiscountPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._product_discount.ProductDiscountSchema",
         unknown=marshmallow.EXCLUDE,
@@ -120,6 +124,18 @@ class ProductDiscountReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.ProductDiscountReference(**data)
+
+
+class ProductDiscountResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.ProductDiscountResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.ProductDiscountResourceIdentifier(**data)
 
 
 class ProductDiscountSchema(LoggedResourceSchema):

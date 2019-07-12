@@ -7,8 +7,8 @@ from commercetools.schemas._common import (
     BaseResourceSchema,
     KeyReferenceSchema,
     LocalizedStringField,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -16,6 +16,7 @@ __all__ = [
     "StoreKeyReferenceSchema",
     "StorePagedQueryResponseSchema",
     "StoreReferenceSchema",
+    "StoreResourceIdentifierSchema",
     "StoreSchema",
     "StoreSetNameActionSchema",
     "StoreUpdateActionSchema",
@@ -48,8 +49,11 @@ class StoreKeyReferenceSchema(KeyReferenceSchema):
         return types.StoreKeyReference(**data)
 
 
-class StorePagedQueryResponseSchema(PagedQueryResponseSchema):
+class StorePagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.StorePagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._store.StoreSchema",
         unknown=marshmallow.EXCLUDE,
@@ -81,6 +85,18 @@ class StoreReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.StoreReference(**data)
+
+
+class StoreResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.StoreResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.StoreResourceIdentifier(**data)
 
 
 class StoreSchema(BaseResourceSchema):

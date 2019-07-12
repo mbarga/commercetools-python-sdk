@@ -6,9 +6,9 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
@@ -24,6 +24,7 @@ __all__ = [
     "ProductDiscountMatchQuery",
     "ProductDiscountPagedQueryResponse",
     "ProductDiscountReference",
+    "ProductDiscountResourceIdentifier",
     "ProductDiscountSetDescriptionAction",
     "ProductDiscountSetKeyAction",
     "ProductDiscountSetValidFromAction",
@@ -218,8 +219,14 @@ class ProductDiscountMatchQuery(_BaseType):
         )
 
 
-class ProductDiscountPagedQueryResponse(PagedQueryResponse):
+class ProductDiscountPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductDiscountPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.ProductDiscount`
     results: typing.Optional[typing.Sequence["ProductDiscount"]]
 
@@ -231,8 +238,11 @@ class ProductDiscountPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["ProductDiscount"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -251,18 +261,36 @@ class ProductDiscountReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["ProductDiscount"] = None
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.PRODUCT_DISCOUNT, id=id)
+
+    def __repr__(self) -> str:
+        return "ProductDiscountReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class ProductDiscountResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductDiscountResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.PRODUCT_DISCOUNT, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "ProductDiscountReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "ProductDiscountResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 

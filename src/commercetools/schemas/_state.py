@@ -7,8 +7,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -20,6 +20,7 @@ __all__ = [
     "StatePagedQueryResponseSchema",
     "StateReferenceSchema",
     "StateRemoveRolesActionSchema",
+    "StateResourceIdentifierSchema",
     "StateSchema",
     "StateSetDescriptionActionSchema",
     "StateSetNameActionSchema",
@@ -41,7 +42,7 @@ class StateDraftSchema(marshmallow.Schema):
         marshmallow_enum.EnumField(types.StateRoleEnum, by_value=True), missing=None
     )
     transitions = marshmallow.fields.Nested(
-        nested="commercetools.schemas._state.StateReferenceSchema",
+        nested="commercetools.schemas._state.StateResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         many=True,
@@ -56,8 +57,11 @@ class StateDraftSchema(marshmallow.Schema):
         return types.StateDraft(**data)
 
 
-class StatePagedQueryResponseSchema(PagedQueryResponseSchema):
+class StatePagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.StatePagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._state.StateSchema",
         unknown=marshmallow.EXCLUDE,
@@ -89,6 +93,18 @@ class StateReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.StateReference(**data)
+
+
+class StateResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.StateResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.StateResourceIdentifier(**data)
 
 
 class StateSchema(LoggedResourceSchema):
@@ -275,7 +291,7 @@ class StateSetRolesActionSchema(StateUpdateActionSchema):
 class StateSetTransitionsActionSchema(StateUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.StateSetTransitionsAction`."
     transitions = marshmallow.fields.Nested(
-        nested="commercetools.schemas._state.StateReferenceSchema",
+        nested="commercetools.schemas._state.StateResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         many=True,

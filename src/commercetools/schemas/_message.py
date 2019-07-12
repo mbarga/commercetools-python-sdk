@@ -4,11 +4,7 @@ import marshmallow
 import marshmallow_enum
 
 from commercetools import helpers, types
-from commercetools.schemas._common import (
-    BaseResourceSchema,
-    LocalizedStringField,
-    PagedQueryResponseSchema,
-)
+from commercetools.schemas._common import BaseResourceSchema, LocalizedStringField
 
 __all__ = [
     "CategoryCreatedMessagePayloadSchema",
@@ -179,8 +175,11 @@ class MessageConfigurationSchema(marshmallow.Schema):
         return types.MessageConfiguration(**data)
 
 
-class MessagePagedQueryResponseSchema(PagedQueryResponseSchema):
+class MessagePagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.MessagePagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._message.MessageSchema",
         unknown=marshmallow.EXCLUDE,
@@ -2314,7 +2313,7 @@ class ProductDeletedMessagePayloadSchema(MessagePayloadSchema):
     "Marshmallow schema for :class:`commercetools.types.ProductDeletedMessagePayload`."
     removed_image_urls = marshmallow.fields.List(
         marshmallow.fields.Nested(
-            nested="commercetools.schemas.None.anySchema",
+            nested="commercetools.schemas.None.stringSchema",
             unknown=marshmallow.EXCLUDE,
             allow_none=True,
         ),
@@ -2341,7 +2340,7 @@ class ProductDeletedMessageSchema(MessageSchema):
     "Marshmallow schema for :class:`commercetools.types.ProductDeletedMessage`."
     removed_image_urls = marshmallow.fields.List(
         marshmallow.fields.Nested(
-            nested="commercetools.schemas.None.anySchema",
+            nested="commercetools.schemas.None.stringSchema",
             unknown=marshmallow.EXCLUDE,
             allow_none=True,
         ),

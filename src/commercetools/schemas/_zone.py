@@ -5,8 +5,8 @@ import marshmallow
 from commercetools import helpers, types
 from commercetools.schemas._common import (
     BaseResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     "ZonePagedQueryResponseSchema",
     "ZoneReferenceSchema",
     "ZoneRemoveLocationActionSchema",
+    "ZoneResourceIdentifierSchema",
     "ZoneSchema",
     "ZoneSetDescriptionActionSchema",
     "ZoneSetKeyActionSchema",
@@ -58,8 +59,11 @@ class ZoneDraftSchema(marshmallow.Schema):
         return types.ZoneDraft(**data)
 
 
-class ZonePagedQueryResponseSchema(PagedQueryResponseSchema):
+class ZonePagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.ZonePagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._zone.ZoneSchema",
         unknown=marshmallow.EXCLUDE,
@@ -91,6 +95,18 @@ class ZoneReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.ZoneReference(**data)
+
+
+class ZoneResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.ZoneResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.ZoneResourceIdentifier(**data)
 
 
 class ZoneSchema(BaseResourceSchema):

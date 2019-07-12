@@ -7,15 +7,20 @@ import typing
 from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
     from ._common import Address, CreatedBy, LastModifiedBy
-    from ._customer_group import CustomerGroupReference
-    from ._type import CustomFields, CustomFieldsDraft, FieldContainer, TypeReference
+    from ._customer_group import CustomerGroupReference, CustomerGroupResourceIdentifier
+    from ._type import (
+        CustomFields,
+        CustomFieldsDraft,
+        FieldContainer,
+        TypeResourceIdentifier,
+    )
 __all__ = [
     "AnonymousCartSignInMode",
     "Customer",
@@ -35,6 +40,7 @@ __all__ = [
     "CustomerRemoveBillingAddressIdAction",
     "CustomerRemoveShippingAddressIdAction",
     "CustomerResetPassword",
+    "CustomerResourceIdentifier",
     "CustomerSetCompanyNameAction",
     "CustomerSetCustomFieldAction",
     "CustomerSetCustomTypeAction",
@@ -336,8 +342,8 @@ class CustomerDraft(_BaseType):
     is_email_verified: typing.Optional[bool]
     #: Optional :class:`str` `(Named` ``externalId`` `in Commercetools)`
     external_id: typing.Optional[str]
-    #: Optional :class:`commercetools.types.CustomerGroupReference` `(Named` ``customerGroup`` `in Commercetools)`
-    customer_group: typing.Optional["CustomerGroupReference"]
+    #: Optional :class:`commercetools.types.CustomerGroupResourceIdentifier` `(Named` ``customerGroup`` `in Commercetools)`
+    customer_group: typing.Optional["CustomerGroupResourceIdentifier"]
     #: Optional :class:`commercetools.types.CustomFieldsDraft`
     custom: typing.Optional["CustomFieldsDraft"]
     #: Optional :class:`str`
@@ -369,7 +375,7 @@ class CustomerDraft(_BaseType):
         billing_addresses: typing.Optional[typing.List[int]] = None,
         is_email_verified: typing.Optional[bool] = None,
         external_id: typing.Optional[str] = None,
-        customer_group: typing.Optional["CustomerGroupReference"] = None,
+        customer_group: typing.Optional["CustomerGroupResourceIdentifier"] = None,
         custom: typing.Optional["CustomFieldsDraft"] = None,
         locale: typing.Optional[str] = None,
         salutation: typing.Optional[str] = None,
@@ -457,8 +463,14 @@ class CustomerEmailVerify(_BaseType):
         )
 
 
-class CustomerPagedQueryResponse(PagedQueryResponse):
+class CustomerPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.Customer`
     results: typing.Optional[typing.Sequence["Customer"]]
 
@@ -470,8 +482,11 @@ class CustomerPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["Customer"]] = None
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -490,17 +505,15 @@ class CustomerReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["Customer"] = None
     ) -> None:
         self.obj = obj
-        super().__init__(type_id=ReferenceTypeId.CUSTOMER, id=id, key=key)
+        super().__init__(type_id=ReferenceTypeId.CUSTOMER, id=id)
 
     def __repr__(self) -> str:
-        return "CustomerReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "CustomerReference(type_id=%r, id=%r, obj=%r)" % (
             self.type_id,
             self.id,
-            self.key,
             self.obj,
         )
 
@@ -531,6 +544,26 @@ class CustomerResetPassword(_BaseType):
             self.token_value,
             self.new_password,
             self.version,
+        )
+
+
+class CustomerResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None
+    ) -> None:
+        super().__init__(type_id=ReferenceTypeId.CUSTOMER, id=id, key=key)
+
+    def __repr__(self) -> str:
+        return "CustomerResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
+            self.type_id,
+            self.id,
+            self.key,
         )
 
 
@@ -897,8 +930,8 @@ class CustomerSetCustomFieldAction(CustomerUpdateAction):
 
 class CustomerSetCustomTypeAction(CustomerUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerSetCustomTypeActionSchema`."
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -906,7 +939,7 @@ class CustomerSetCustomTypeAction(CustomerUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None
     ) -> None:
         self.type = type
@@ -923,14 +956,14 @@ class CustomerSetCustomTypeAction(CustomerUpdateAction):
 
 class CustomerSetCustomerGroupAction(CustomerUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.CustomerSetCustomerGroupActionSchema`."
-    #: Optional :class:`commercetools.types.CustomerGroupReference` `(Named` ``customerGroup`` `in Commercetools)`
-    customer_group: typing.Optional["CustomerGroupReference"]
+    #: Optional :class:`commercetools.types.CustomerGroupResourceIdentifier` `(Named` ``customerGroup`` `in Commercetools)`
+    customer_group: typing.Optional["CustomerGroupResourceIdentifier"]
 
     def __init__(
         self,
         *,
         action: typing.Optional[str] = None,
-        customer_group: typing.Optional["CustomerGroupReference"] = None
+        customer_group: typing.Optional["CustomerGroupResourceIdentifier"] = None
     ) -> None:
         self.customer_group = customer_group
         super().__init__(action="setCustomerGroup")

@@ -7,8 +7,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -47,6 +47,7 @@ __all__ = [
     "TypePagedQueryResponseSchema",
     "TypeReferenceSchema",
     "TypeRemoveFieldDefinitionActionSchema",
+    "TypeResourceIdentifierSchema",
     "TypeSchema",
     "TypeSetDescriptionActionSchema",
     "TypeUpdateActionSchema",
@@ -89,7 +90,7 @@ class CustomFieldLocalizedEnumValueSchema(marshmallow.Schema):
 class CustomFieldsDraftSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.CustomFieldsDraft`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._common.ResourceIdentifierSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -177,8 +178,11 @@ class TypeDraftSchema(marshmallow.Schema):
         return types.TypeDraft(**data)
 
 
-class TypePagedQueryResponseSchema(PagedQueryResponseSchema):
+class TypePagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.TypePagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._type.TypeSchema",
         unknown=marshmallow.EXCLUDE,
@@ -210,6 +214,18 @@ class TypeReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.TypeReference(**data)
+
+
+class TypeResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.TypeResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.TypeResourceIdentifier(**data)
 
 
 class TypeSchema(LoggedResourceSchema):

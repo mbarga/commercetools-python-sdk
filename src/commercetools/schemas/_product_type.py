@@ -7,8 +7,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 
 __all__ = [
@@ -52,6 +52,7 @@ __all__ = [
     "ProductTypeReferenceSchema",
     "ProductTypeRemoveAttributeDefinitionActionSchema",
     "ProductTypeRemoveEnumValuesActionSchema",
+    "ProductTypeResourceIdentifierSchema",
     "ProductTypeSchema",
     "ProductTypeSetInputTipActionSchema",
     "ProductTypeSetKeyActionSchema",
@@ -209,8 +210,11 @@ class ProductTypeDraftSchema(marshmallow.Schema):
         return types.ProductTypeDraft(**data)
 
 
-class ProductTypePagedQueryResponseSchema(PagedQueryResponseSchema):
+class ProductTypePagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.ProductTypePagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._product_type.ProductTypeSchema",
         unknown=marshmallow.EXCLUDE,
@@ -242,6 +246,18 @@ class ProductTypeReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.ProductTypeReference(**data)
+
+
+class ProductTypeResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.ProductTypeResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.ProductTypeResourceIdentifier(**data)
 
 
 class ProductTypeSchema(LoggedResourceSchema):

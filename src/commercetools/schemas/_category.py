@@ -6,8 +6,8 @@ from commercetools import helpers, types
 from commercetools.schemas._common import (
     LocalizedStringField,
     LoggedResourceSchema,
-    PagedQueryResponseSchema,
     ReferenceSchema,
+    ResourceIdentifierSchema,
 )
 from commercetools.schemas._type import FieldContainerField
 
@@ -23,6 +23,7 @@ __all__ = [
     "CategoryPagedQueryResponseSchema",
     "CategoryReferenceSchema",
     "CategoryRemoveAssetActionSchema",
+    "CategoryResourceIdentifierSchema",
     "CategorySchema",
     "CategorySetAssetCustomFieldActionSchema",
     "CategorySetAssetCustomTypeActionSchema",
@@ -49,7 +50,7 @@ class CategoryDraftSchema(marshmallow.Schema):
     slug = LocalizedStringField(allow_none=True)
     description = LocalizedStringField(allow_none=True, missing=None)
     parent = marshmallow.fields.Nested(
-        nested="commercetools.schemas._category.CategoryReferenceSchema",
+        nested="commercetools.schemas._category.CategoryResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,
@@ -92,8 +93,11 @@ class CategoryDraftSchema(marshmallow.Schema):
         return types.CategoryDraft(**data)
 
 
-class CategoryPagedQueryResponseSchema(PagedQueryResponseSchema):
+class CategoryPagedQueryResponseSchema(marshmallow.Schema):
     "Marshmallow schema for :class:`commercetools.types.CategoryPagedQueryResponse`."
+    count = marshmallow.fields.Integer(allow_none=True)
+    total = marshmallow.fields.Integer(allow_none=True, missing=None)
+    offset = marshmallow.fields.Integer(allow_none=True)
     results = marshmallow.fields.Nested(
         nested="commercetools.schemas._category.CategorySchema",
         unknown=marshmallow.EXCLUDE,
@@ -125,6 +129,18 @@ class CategoryReferenceSchema(ReferenceSchema):
     def post_load(self, data):
         del data["type_id"]
         return types.CategoryReference(**data)
+
+
+class CategoryResourceIdentifierSchema(ResourceIdentifierSchema):
+    "Marshmallow schema for :class:`commercetools.types.CategoryResourceIdentifier`."
+
+    class Meta:
+        unknown = marshmallow.EXCLUDE
+
+    @marshmallow.post_load
+    def post_load(self, data):
+        del data["type_id"]
+        return types.CategoryResourceIdentifier(**data)
 
 
 class CategorySchema(LoggedResourceSchema):
@@ -318,7 +334,7 @@ class CategoryChangeOrderHintActionSchema(CategoryUpdateActionSchema):
 class CategoryChangeParentActionSchema(CategoryUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.CategoryChangeParentAction`."
     parent = marshmallow.fields.Nested(
-        nested="commercetools.schemas._category.CategoryReferenceSchema",
+        nested="commercetools.schemas._category.CategoryResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
     )
@@ -392,7 +408,7 @@ class CategorySetAssetCustomTypeActionSchema(CategoryUpdateActionSchema):
         allow_none=True, missing=None, data_key="assetKey"
     )
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,
@@ -505,7 +521,7 @@ class CategorySetCustomFieldActionSchema(CategoryUpdateActionSchema):
 class CategorySetCustomTypeActionSchema(CategoryUpdateActionSchema):
     "Marshmallow schema for :class:`commercetools.types.CategorySetCustomTypeAction`."
     type = marshmallow.fields.Nested(
-        nested="commercetools.schemas._type.TypeReferenceSchema",
+        nested="commercetools.schemas._type.TypeResourceIdentifierSchema",
         unknown=marshmallow.EXCLUDE,
         allow_none=True,
         missing=None,

@@ -8,14 +8,14 @@ from commercetools.types._abstract import _BaseType
 from commercetools.types._common import (
     BaseResource,
     LoggedResource,
-    PagedQueryResponse,
     Reference,
     ReferenceTypeId,
+    ResourceIdentifier,
 )
 
 if typing.TYPE_CHECKING:
     from ._cart import ProductPublishScope
-    from ._category import CategoryReference
+    from ._category import CategoryReference, CategoryResourceIdentifier
     from ._common import (
         Asset,
         AssetDraft,
@@ -29,11 +29,11 @@ if typing.TYPE_CHECKING:
         PriceDraft,
         ScopedPrice,
     )
-    from ._product_type import ProductTypeReference
+    from ._product_type import ProductTypeReference, ProductTypeResourceIdentifier
     from ._review import ReviewRatingStatistics
-    from ._state import StateReference
-    from ._tax_category import TaxCategoryReference
-    from ._type import FieldContainer, TypeReference
+    from ._state import StateReference, StateResourceIdentifier
+    from ._tax_category import TaxCategoryReference, TaxCategoryResourceIdentifier
+    from ._type import FieldContainer, TypeResourceIdentifier
 __all__ = [
     "Attribute",
     "AttributeValue",
@@ -73,6 +73,7 @@ __all__ = [
     "ProductRemoveImageAction",
     "ProductRemovePriceAction",
     "ProductRemoveVariantAction",
+    "ProductResourceIdentifier",
     "ProductRevertStagedChangesAction",
     "ProductRevertStagedVariantChangesAction",
     "ProductSetAssetCustomFieldAction",
@@ -449,8 +450,8 @@ class ProductData(_BaseType):
 
 class ProductDraft(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductDraftSchema`."
-    #: Optional :class:`commercetools.types.ProductTypeReference` `(Named` ``productType`` `in Commercetools)`
-    product_type: typing.Optional["ProductTypeReference"]
+    #: :class:`commercetools.types.ProductTypeResourceIdentifier` `(Named` ``productType`` `in Commercetools)`
+    product_type: typing.Optional["ProductTypeResourceIdentifier"]
     #: :class:`commercetools.types.LocalizedString`
     name: typing.Optional["LocalizedString"]
     #: :class:`commercetools.types.LocalizedString`
@@ -459,8 +460,8 @@ class ProductDraft(_BaseType):
     key: typing.Optional[str]
     #: Optional :class:`commercetools.types.LocalizedString`
     description: typing.Optional["LocalizedString"]
-    #: Optional list of :class:`commercetools.types.CategoryReference`
-    categories: typing.Optional[typing.List["CategoryReference"]]
+    #: Optional list of :class:`commercetools.types.CategoryResourceIdentifier`
+    categories: typing.Optional[typing.List["CategoryResourceIdentifier"]]
     #: Optional :class:`commercetools.types.CategoryOrderHints` `(Named` ``categoryOrderHints`` `in Commercetools)`
     category_order_hints: typing.Optional["CategoryOrderHints"]
     #: Optional :class:`commercetools.types.LocalizedString` `(Named` ``metaTitle`` `in Commercetools)`
@@ -473,33 +474,33 @@ class ProductDraft(_BaseType):
     master_variant: typing.Optional["ProductVariantDraft"]
     #: Optional list of :class:`commercetools.types.ProductVariantDraft`
     variants: typing.Optional[typing.List["ProductVariantDraft"]]
-    #: Optional :class:`commercetools.types.TaxCategoryReference` `(Named` ``taxCategory`` `in Commercetools)`
-    tax_category: typing.Optional["TaxCategoryReference"]
+    #: Optional :class:`commercetools.types.TaxCategoryResourceIdentifier` `(Named` ``taxCategory`` `in Commercetools)`
+    tax_category: typing.Optional["TaxCategoryResourceIdentifier"]
     #: Optional :class:`commercetools.types.SearchKeywords` `(Named` ``searchKeywords`` `in Commercetools)`
     search_keywords: typing.Optional["SearchKeywords"]
-    #: Optional :class:`commercetools.types.StateReference`
-    state: typing.Optional["StateReference"]
+    #: Optional :class:`commercetools.types.StateResourceIdentifier`
+    state: typing.Optional["StateResourceIdentifier"]
     #: Optional :class:`bool`
     publish: typing.Optional[bool]
 
     def __init__(
         self,
         *,
-        product_type: typing.Optional["ProductTypeReference"] = None,
+        product_type: typing.Optional["ProductTypeResourceIdentifier"] = None,
         name: typing.Optional["LocalizedString"] = None,
         slug: typing.Optional["LocalizedString"] = None,
         key: typing.Optional[str] = None,
         description: typing.Optional["LocalizedString"] = None,
-        categories: typing.Optional[typing.List["CategoryReference"]] = None,
+        categories: typing.Optional[typing.List["CategoryResourceIdentifier"]] = None,
         category_order_hints: typing.Optional["CategoryOrderHints"] = None,
         meta_title: typing.Optional["LocalizedString"] = None,
         meta_description: typing.Optional["LocalizedString"] = None,
         meta_keywords: typing.Optional["LocalizedString"] = None,
         master_variant: typing.Optional["ProductVariantDraft"] = None,
         variants: typing.Optional[typing.List["ProductVariantDraft"]] = None,
-        tax_category: typing.Optional["TaxCategoryReference"] = None,
+        tax_category: typing.Optional["TaxCategoryResourceIdentifier"] = None,
         search_keywords: typing.Optional["SearchKeywords"] = None,
-        state: typing.Optional["StateReference"] = None,
+        state: typing.Optional["StateResourceIdentifier"] = None,
         publish: typing.Optional[bool] = None,
     ) -> None:
         self.product_type = product_type
@@ -544,8 +545,14 @@ class ProductDraft(_BaseType):
         )
 
 
-class ProductPagedQueryResponse(PagedQueryResponse):
+class ProductPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.Product`
     results: typing.Optional[typing.Sequence["Product"]]
 
@@ -557,8 +564,11 @@ class ProductPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["Product"]] = None,
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -687,8 +697,14 @@ class ProductProjection(BaseResource):
         )
 
 
-class ProductProjectionPagedQueryResponse(PagedQueryResponse):
+class ProductProjectionPagedQueryResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductProjectionPagedQueryResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.ProductProjection`
     results: typing.Optional[typing.Sequence["ProductProjection"]]
 
@@ -700,8 +716,11 @@ class ProductProjectionPagedQueryResponse(PagedQueryResponse):
         offset: typing.Optional[int] = None,
         results: typing.Optional[typing.Sequence["ProductProjection"]] = None,
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -710,8 +729,14 @@ class ProductProjectionPagedQueryResponse(PagedQueryResponse):
         )
 
 
-class ProductProjectionPagedSearchResponse(PagedQueryResponse):
+class ProductProjectionPagedSearchResponse(_BaseType):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductProjectionPagedSearchResponseSchema`."
+    #: :class:`int`
+    count: typing.Optional[int]
+    #: Optional :class:`int`
+    total: typing.Optional[int]
+    #: :class:`int`
+    offset: typing.Optional[int]
     #: List of :class:`commercetools.types.ProductProjection`
     results: typing.Optional[typing.List["ProductProjection"]]
     #: :class:`commercetools.types.FacetResults`
@@ -726,9 +751,12 @@ class ProductProjectionPagedSearchResponse(PagedQueryResponse):
         results: typing.Optional[typing.List["ProductProjection"]] = None,
         facets: typing.Optional["FacetResults"] = None,
     ) -> None:
+        self.count = count
+        self.total = total
+        self.offset = offset
         self.results = results
         self.facets = facets
-        super().__init__(count=count, total=total, offset=offset, results=results)
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
@@ -747,18 +775,36 @@ class ProductReference(Reference):
         *,
         type_id: typing.Optional["ReferenceTypeId"] = None,
         id: typing.Optional[str] = None,
-        key: typing.Optional[str] = None,
         obj: typing.Optional["Product"] = None,
     ) -> None:
         self.obj = obj
+        super().__init__(type_id=ReferenceTypeId.PRODUCT, id=id)
+
+    def __repr__(self) -> str:
+        return "ProductReference(type_id=%r, id=%r, obj=%r)" % (
+            self.type_id,
+            self.id,
+            self.obj,
+        )
+
+
+class ProductResourceIdentifier(ResourceIdentifier):
+    "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductResourceIdentifierSchema`."
+
+    def __init__(
+        self,
+        *,
+        type_id: typing.Optional["ReferenceTypeId"] = None,
+        id: typing.Optional[str] = None,
+        key: typing.Optional[str] = None,
+    ) -> None:
         super().__init__(type_id=ReferenceTypeId.PRODUCT, id=id, key=key)
 
     def __repr__(self) -> str:
-        return "ProductReference(type_id=%r, id=%r, key=%r, obj=%r)" % (
+        return "ProductResourceIdentifier(type_id=%r, id=%r, key=%r)" % (
             self.type_id,
             self.id,
             self.key,
-            self.obj,
         )
 
 
@@ -1221,8 +1267,8 @@ class ProductAddPriceAction(ProductUpdateAction):
 
 class ProductAddToCategoryAction(ProductUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductAddToCategoryActionSchema`."
-    #: :class:`commercetools.types.CategoryReference`
-    category: typing.Optional["CategoryReference"]
+    #: :class:`commercetools.types.CategoryResourceIdentifier`
+    category: typing.Optional["CategoryResourceIdentifier"]
     #: Optional :class:`str` `(Named` ``orderHint`` `in Commercetools)`
     order_hint: typing.Optional[str]
     #: Optional :class:`bool`
@@ -1232,7 +1278,7 @@ class ProductAddToCategoryAction(ProductUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        category: typing.Optional["CategoryReference"] = None,
+        category: typing.Optional["CategoryResourceIdentifier"] = None,
         order_hint: typing.Optional[str] = None,
         staged: typing.Optional[bool] = None,
     ) -> None:
@@ -1628,8 +1674,8 @@ class ProductRemoveAssetAction(ProductUpdateAction):
 
 class ProductRemoveFromCategoryAction(ProductUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductRemoveFromCategoryActionSchema`."
-    #: :class:`commercetools.types.CategoryReference`
-    category: typing.Optional["CategoryReference"]
+    #: :class:`commercetools.types.CategoryResourceIdentifier`
+    category: typing.Optional["CategoryResourceIdentifier"]
     #: Optional :class:`bool`
     staged: typing.Optional[bool]
 
@@ -1637,7 +1683,7 @@ class ProductRemoveFromCategoryAction(ProductUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        category: typing.Optional["CategoryReference"] = None,
+        category: typing.Optional["CategoryResourceIdentifier"] = None,
         staged: typing.Optional[bool] = None,
     ) -> None:
         self.category = category
@@ -1839,8 +1885,8 @@ class ProductSetAssetCustomTypeAction(ProductUpdateAction):
     asset_id: typing.Optional[str]
     #: Optional :class:`str` `(Named` ``assetKey`` `in Commercetools)`
     asset_key: typing.Optional[str]
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`object`
     fields: typing.Optional[object]
 
@@ -1853,7 +1899,7 @@ class ProductSetAssetCustomTypeAction(ProductUpdateAction):
         staged: typing.Optional[bool] = None,
         asset_id: typing.Optional[str] = None,
         asset_key: typing.Optional[str] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional[object] = None,
     ) -> None:
         self.variant_id = variant_id
@@ -2436,8 +2482,8 @@ class ProductSetProductPriceCustomTypeAction(ProductUpdateAction):
     price_id: typing.Optional[str]
     #: Optional :class:`bool`
     staged: typing.Optional[bool]
-    #: Optional :class:`commercetools.types.TypeReference`
-    type: typing.Optional["TypeReference"]
+    #: Optional :class:`commercetools.types.TypeResourceIdentifier`
+    type: typing.Optional["TypeResourceIdentifier"]
     #: Optional :class:`commercetools.types.FieldContainer`
     fields: typing.Optional["FieldContainer"]
 
@@ -2447,7 +2493,7 @@ class ProductSetProductPriceCustomTypeAction(ProductUpdateAction):
         action: typing.Optional[str] = None,
         price_id: typing.Optional[str] = None,
         staged: typing.Optional[bool] = None,
-        type: typing.Optional["TypeReference"] = None,
+        type: typing.Optional["TypeResourceIdentifier"] = None,
         fields: typing.Optional["FieldContainer"] = None,
     ) -> None:
         self.price_id = price_id
@@ -2554,14 +2600,14 @@ class ProductSetSkuAction(ProductUpdateAction):
 
 class ProductSetTaxCategoryAction(ProductUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductSetTaxCategoryActionSchema`."
-    #: Optional :class:`commercetools.types.TaxCategoryReference` `(Named` ``taxCategory`` `in Commercetools)`
-    tax_category: typing.Optional["TaxCategoryReference"]
+    #: Optional :class:`commercetools.types.TaxCategoryResourceIdentifier` `(Named` ``taxCategory`` `in Commercetools)`
+    tax_category: typing.Optional["TaxCategoryResourceIdentifier"]
 
     def __init__(
         self,
         *,
         action: typing.Optional[str] = None,
-        tax_category: typing.Optional["TaxCategoryReference"] = None,
+        tax_category: typing.Optional["TaxCategoryResourceIdentifier"] = None,
     ) -> None:
         self.tax_category = tax_category
         super().__init__(action="setTaxCategory")
@@ -2575,8 +2621,8 @@ class ProductSetTaxCategoryAction(ProductUpdateAction):
 
 class ProductTransitionStateAction(ProductUpdateAction):
     "Corresponding marshmallow schema is :class:`commercetools.schemas.ProductTransitionStateActionSchema`."
-    #: Optional :class:`commercetools.types.StateReference`
-    state: typing.Optional["StateReference"]
+    #: Optional :class:`commercetools.types.StateResourceIdentifier`
+    state: typing.Optional["StateResourceIdentifier"]
     #: Optional :class:`bool`
     force: typing.Optional[bool]
 
@@ -2584,7 +2630,7 @@ class ProductTransitionStateAction(ProductUpdateAction):
         self,
         *,
         action: typing.Optional[str] = None,
-        state: typing.Optional["StateReference"] = None,
+        state: typing.Optional["StateResourceIdentifier"] = None,
         force: typing.Optional[bool] = None,
     ) -> None:
         self.state = state
