@@ -38,10 +38,12 @@ class Server:
 
     def __call__(self, environ, start_response):
         request = self._create_request(environ)
+        request.url = request.url.split("?")[0]
         request_mock = _RequestObjectProxy(request.prepare())
 
-        if request_mock.body is None:
-            request_mock.body = ""
+        # if request_mock.body is None:
+        if not(hasattr(request_mock, 'body')) or request_mock.body is None:
+            request_mock.body = "{}"
 
         response = self.adapter.match(request_mock)
         response = self._create_response(response)
