@@ -54,22 +54,30 @@ class ProductsModel(BaseModel):
         self, draft: types.ProductVariantDraft
     ) -> types.ProductVariant:
 
-        assets: typing.Optional[typing.List[types.Asset]] = None
-        if draft.assets:
+        assets: typing.Optional[typing.List[types.Asset]] = []
+        if draft.assets is not None:
             assets = self._create_assets_from_draft(draft.assets)
 
-        prices: typing.Optional[typing.List[types.Price]] = None
-        if draft.prices:
+        prices: typing.Optional[typing.List[types.Price]] = []
+        if draft.prices is not None:
             prices = self._create_prices_from_draft(draft.prices)
+
+        attributes: typing.Optional[typing.List[types.Attribute]] = []
+        if draft.attributes is not None:
+            attributes = draft.attributes
+
+        images: typing.Optional[typing.List[types.Image]] = []
+        if draft.images is not None:
+            images = draft.images
 
         return types.ProductVariant(
             id=1,
             sku=draft.sku,
             key=draft.key,
             prices=prices,
-            attributes=draft.attributes,
+            attributes=attributes,
             price=None,
-            images=draft.images,
+            images=images,
             assets=assets,
             availability=None,
             is_matching_variant=None,
