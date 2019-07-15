@@ -544,7 +544,8 @@ class ProductSchema(LoggedResourceSchema):
     product_type = marshmallow.fields.Nested(
         nested="commercetools.schemas._product_type.ProductTypeReferenceSchema",
         unknown=marshmallow.EXCLUDE,
-        allow_none=True,
+        allow_none=False,
+        required=True,
         data_key="productType",
     )
     master_data = marshmallow.fields.Nested(
