@@ -1,5 +1,5 @@
 import typing
-
+import dateutil.parser
 from commercetools import schemas, types
 from commercetools.services.product_projections import ProductProjectionsQuerySchema
 from commercetools.testing import utils
@@ -104,23 +104,23 @@ class ProductProjectionsBackend(ServiceBackend):
             "id": product["id"],
             "key": product["key"],
             "version": product["version"],
-            "createdAt": product["createdAt"],
-            "lastModifiedAt": product["lastModifiedAt"],
-            "productType": product["productType"],
+            "created_at": dateutil.parser.parse(product["createdAt"]),
+            "last_modified_at": dateutil.parser.parse(product["lastModifiedAt"]),
+            "product_type": product["productType"],
             "name": data["name"],
             "description": data["description"],
             "slug": data["slug"],
             "categories": data["categories"],
-            "categoryOrderHints": data["categoryOrderHints"],
-            "metaTitle": data["metaTitle"],
-            "metaDescription": data["metaDescription"],
-            "metaKeywords": data["metaKeywords"],
-            "searchKeywords": data["searchKeywords"],
-            "hasStagedChanges": product["masterData"]["hasStagedChanges"],
+            "category_order_hints": data["categoryOrderHints"],
+            "meta_title": data["metaTitle"],
+            "meta_description": data["metaDescription"],
+            "meta_keywords": data["metaKeywords"],
+            "search_keywords": data["searchKeywords"],
+            "has_staged_changes": product["masterData"]["hasStagedChanges"],
             "published": product["masterData"]["published"],
-            "masterVariant": data["masterVariant"],
+            "master_variant": data["masterVariant"],
             "variants": data["variants"],
-            "taxCategory": product["taxCategory"],
+            "tax_category": product["taxCategory"],
             "state": product["state"],
-            "reviewRatingStatistics": product["reviewRatingStatistics"],
+            "review_rating_statistics": product["reviewRatingStatistics"],
         }

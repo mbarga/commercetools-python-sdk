@@ -430,7 +430,8 @@ class ProductProjectionSchema(BaseResourceSchema):
     product_type = marshmallow.fields.Nested(
         nested="commercetools.schemas._product_type.ProductTypeReferenceSchema",
         unknown=marshmallow.EXCLUDE,
-        allow_none=True,
+        allow_none=False,
+        required=True,
         data_key="productType",
     )
     name = LocalizedStringField(allow_none=True)
@@ -468,7 +469,8 @@ class ProductProjectionSchema(BaseResourceSchema):
     master_variant = marshmallow.fields.Nested(
         nested="commercetools.schemas._product.ProductVariantSchema",
         unknown=marshmallow.EXCLUDE,
-        allow_none=True,
+        allow_none=False,
+        required=True,
         data_key="masterVariant",
     )
     variants = marshmallow.fields.Nested(
